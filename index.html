@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuQuery AI | RAG Asistanı</title>
+    <!-- Modern & Zarif Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Krem & Fildişi Zemin Paleti */
+            --bg-base: #fbf9f5;
+            --bg-surface: #f3efe6;
+            --bg-card: #ffffff;
+            --border-soft: #e5dfd3;
+            --border-strong: #d4ccbd;
+
+            /* Bordo & Lacivert Vurgular */
+            --bordeaux: #7a1c2d;
+            --bordeaux-hover: #932338;
+            --navy: #14213d;
+            --navy-hover: #1e3158;
+            --navy-soft: #233554;
+
+            /* Tipografi */
+            --text-heading: #1a1917;
+            --text-body: #2d2a26;
+            --text-muted: #6e675f;
+            --text-subtle: #9c9387;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-base);
+            color: var(--text-body);
+            overflow: hidden;
+        }
+
+        /* Sol Sidebar */
+        #sidebar {
+            width: 340px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-soft);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--bordeaux), var(--navy));
+            box-shadow: 0 4px 12px rgba(122, 28, 45, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .brand-title h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--navy);
+            letter-spacing: -0.01em;
+        }
+
+        .brand-title p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .upload-section {
+            background: var(--bg-card);
+            border: 1.5px dashed var(--border-strong);
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--bordeaux);
+            background: #fffcf7;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 9px 18px;
+            cursor: pointer;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-soft);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--navy);
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        .custom-file-upload:hover {
+            background: #eae4d7;
+            border-color: var(--navy);
+        }
+
+        .file-name-preview {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            word-break: break-all;
+        }
+
+        /* Bordo İndeksleme Butonu */
+        .btn-bordeaux {
+            width: 100%;
+            margin-top: 14px;
+            padding: 12px;
+            background: var(--bordeaux);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(122, 28, 45, 0.25);
+            transition: 0.2s;
+        }
+
+        .btn-bordeaux:hover {
+            background: var(--bordeaux-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-bordeaux:disabled {
+            background: #c9c2b5;
+            box-shadow: none;
+            color: #7d7568;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-badge {
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .samples-section {
+            margin-top: 26px;
+        }
+
+        .samples-section h4 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .sample-pill {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: var(--bg-card);
+            border: 1px solid var(--border-soft);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            color: var(--text-body);
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .sample-pill:hover {
+            background: #fffcf7;
+            border-color: var(--navy);
+            color: var(--navy);
+            transform: translateX(4px);
+        }
+
+        .sidebar-footer {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            border-top: 1px solid var(--border-soft);
+            padding-top: 14px;
+        }
+
+        /* Sağ Chat Alanı */
+        #chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--bg-base);
+        }
+
+        .chat-top-bar {
+            height: 64px;
+            border-bottom: 1px solid var(--border-soft);
+            background: var(--bg-surface);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+        }
+
+        .active-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #16a34a;
+            box-shadow: 0 0 6px rgba(22, 163, 74, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: 1px solid var(--border-strong);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--bordeaux);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: #fbebee;
+            border-color: var(--bordeaux);
+        }
+
+        #messages {
+            flex: 1;
+            padding: 28px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .msg-row {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+        }
+
+        .msg-row.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .msg-row.bot {
+            align-self: flex-start;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+        .avatar.user-av {
+            background: var(--navy);
+            color: white;
+            box-shadow: 0 2px 8px rgba(20, 33, 61, 0.2);
+        }
+
+        .avatar.bot-av {
+            background: var(--bg-surface);
+            color: var(--bordeaux);
+            border: 1px solid var(--border-soft);
+        }
+
+        .bubble {
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-size: 14.5px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        /* Kullanıcı Balonu: Lacivert */
+        .msg-row.user .bubble {
+            background: var(--navy);
+            color: #ffffff;
+            border-top-right-radius: 2px;
+            box-shadow: 0 3px 10px rgba(20, 33, 61, 0.15);
+        }
+
+        /* Bot Balonu: Temiz Beyaz Kart */
+        .msg-row.bot .bubble {
+            background: var(--bg-card);
+            color: var(--text-body);
+            border: 1px solid var(--border-soft);
+            border-top-left-radius: 2px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        details.context-acc {
+            margin-top: 12px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-soft);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12.5px;
+            color: var(--text-muted);
+        }
+
+        details.context-acc summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--bordeaux);
+            user-select: none;
+        }
+
+        details.context-acc p {
+            margin-top: 8px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            border-top: 1px solid var(--border-soft);
+            padding-top: 6px;
+        }
+
+        /* Alt Soru Alanı */
+        #input-container {
+            padding: 18px 28px;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-soft);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        #questionInput {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1.5px solid var(--border-strong);
+            border-radius: 10px;
+            outline: none;
+            font-size: 14.5px;
+            transition: 0.2s;
+            background: var(--bg-card);
+            color: var(--text-body);
+        }
+
+        #questionInput:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 3px rgba(20, 33, 61, 0.08);
+        }
+
+        /* Gönder Butonu: Lacivert */
+        #sendBtn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            background: var(--navy);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 3px 10px rgba(20, 33, 61, 0.2);
+        }
+
+        #sendBtn:hover {
+            background: var(--navy-hover);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sol Panel -->
+    <div id="sidebar">
+        <div>
+            <div class="brand-header">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-title">
+                    <h1>DocuQuery AI</h1>
+                    <p>FastAPI & Gemini RAG</p>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <p style="font-size: 13px; font-weight: 600; color: var(--navy);">PDF Dosyası Seç</p>
+                <label for="pdfFile" class="custom-file-upload">Dosyalara Gözat</label>
+                <input type="file" id="pdfFile" accept="application/pdf" onchange="showFileName()">
+                <div id="fileNamePreview" class="file-name-preview">Henüz dosya seçilmedi</div>
+                <button id="uploadBtn" class="btn-bordeaux" onclick="uploadPDF()">Dokümanı İndeksle</button>
+                <div id="uploadStatus" class="status-badge"></div>
+            </div>
+
+            <div class="samples-section">
+                <h4>Hızlı Örnek Sorular</h4>
+                <button class="sample-pill" onclick="fillQuestion('Yıllık izin hakkı kaç gündür?')">💡 Yıllık izin hakkı kaç gündür?</button>
+                <button class="sample-pill" onclick="fillQuestion('Dokümandaki ana konuları maddeler halinde özetler misin?')">📝 Dokümanı özetler misin?</button>
+                <button class="sample-pill" onclick="fillQuestion('Çalışma saatleri ve esnek çalışma kuralları nelerdir?')">⏰ Çalışma saatleri nelerdir?</button>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            FastAPI Backend • PyPDF • Gemini Flash
+        </div>
+    </div>
+
+    <!-- Sohbet Alanı -->
+    <div id="chat-area">
+        <div class="chat-top-bar">
+            <div class="active-status">
+                <div class="status-dot"></div>
+                Sistem Hazır & Aktif
+            </div>
+            <button class="clear-btn" onclick="clearChat()">Sohbeti Temizle</button>
+        </div>
+
+        <div id="messages">
+            <div class="msg-row bot">
+                <div class="avatar bot-av">AI</div>
+                <div class="bubble">
+                    Merhaba! Sol taraftan PDF dosyanı seçip <b>Dokümanı İndeksle</b> butonuna bastıktan sonra dilediğin soruyu yöneltebilirsin.
+                </div>
+            </div>
+        </div>
+
+        <div id="input-container">
+            <input type="text" id="questionInput" placeholder="Doküman hakkında bir soru yazın..." onkeydown="if(event.key === 'Enter') askQuestion()">
+            <button id="sendBtn" onclick="askQuestion()">Gönder</button>
+        </div>
+    </div>
+
+    <script>
+        function showFileName() {
+            const input = document.getElementById("pdfFile");
+            const preview = document.getElementById("fileNamePreview");
+            if (input.files.length > 0) {
+                preview.innerText = input.files[0].name;
+            }
+        }
+
+        function fillQuestion(text) {
+            const input = document.getElementById("questionInput");
+            input.value = text;
+            input.focus();
+        }
+
+        function clearChat() {
+            const msgContainer = document.getElementById("messages");
+            msgContainer.innerHTML = `
+                <div class="msg-row bot">
+                    <div class="avatar bot-av">AI</div>
+                    <div class="bubble">Sohbet sıfırlandı. Sorularını sormaya devam edebilirsin.</div>
+                </div>
+            `;
+        }
+
+        async function uploadPDF() {
+            const fileInput = document.getElementById("pdfFile");
+            const status = document.getElementById("uploadStatus");
+            const btn = document.getElementById("uploadBtn");
+            if (!fileInput.files.length) return alert("Lütfen önce bir PDF dosyası seçin.");
+
+            btn.disabled = true;
+            status.style.display = "block";
+            status.style.background = "#fbebee";
+            status.style.color = "var(--bordeaux)";
+            status.innerText = "⏳ İndeksleniyor...";
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const res = await fetch("/upload-pdf", { method: "POST", body: formData });
+                if (res.ok) {
+                    status.style.background = "#e6f4ea";
+                    status.style.color = "#137333";
+                    status.innerText = "✅ Başarıyla İndekslendi!";
+                } else {
+                    status.style.background = "#fce8e6";
+                    status.style.color = "#c5221f";
+                    status.innerText = "❌ Yükleme hatası.";
+                }
+            } catch (err) {
+                status.style.background = "#fce8e6";
+                status.style.color = "#c5221f";
+                status.innerText = "❌ Sunucu bağlantı hatası.";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function askQuestion() {
+            const input = document.getElementById("questionInput");
+            const q = input.value.trim();
+            if (!q) return;
+
+            const msgContainer = document.getElementById("messages");
+
+            // Kullanıcı Mesajı
+            msgContainer.innerHTML += `
+                <div class="msg-row user">
+                    <div class="avatar user-av">Sen</div>
+                    <div class="bubble">${escapeHtml(q)}</div>
+                </div>
+            `;
+            input.value = "";
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            // Bot Düşünme Durumu
+            const botRow = document.createElement("div");
+            botRow.className = "msg-row bot";
+            botRow.innerHTML = `
+                <div class="avatar bot-av">AI</div>
+                <div class="bubble">Düşünüyor ve dokümandan referans topluyor...</div>
+            `;
+            msgContainer.appendChild(botRow);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            try {
+                const res = await fetch("/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question: q, evaluate: false })
+                });
+                const data = await res.json();
+                const bubble = botRow.querySelector(".bubble");
+
+                bubble.innerHTML = formatAnswer(data.answer || "Cevap alınamadı.");
+
+                if (data.context && data.context.length > 0) {
+                    const acc = document.createElement("details");
+                    acc.className = "context-acc";
+                    acc.innerHTML = `
+                        <summary>🔍 Referans Metin (${data.context.length} Parça)</summary>
+                        <p>${escapeHtml(data.context[0])}</p>
+                    `;
+                    bubble.appendChild(acc);
+                }
+            } catch (err) {
+                const bubble = botRow.querySelector(".bubble");
+                bubble.innerText = "Sunucuya ulaşılamadı. FastAPI çalışıyor mu?";
+            }
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function formatAnswer(text) {
+            return escapeHtml(text)
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/\n/g, '<br>');
+        }
+    </script>
+</body>
+</html>
